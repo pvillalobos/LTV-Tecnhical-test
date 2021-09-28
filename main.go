@@ -1,8 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
 	fmt.Println("test")
-	helperTest.writeHello()
+	helperTest.writehello()
+	//helperTest.writeHello()
+	//helperTest.writehello()
 }
