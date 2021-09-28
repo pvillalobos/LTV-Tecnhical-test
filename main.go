@@ -6,7 +6,7 @@ import (
 
 func main() {
 	fmt.Println("test")
-	helperTest.writehello()
+	var _ = helperTest.writehello()
 	//helperTest.writeHello()
 	//helperTest.writehello()
 }
