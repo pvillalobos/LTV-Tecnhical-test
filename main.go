@@ -58,9 +58,18 @@ func getReleases(c *gin.Context, from time.Time, until time.Time, artist string)
 		if !found {
 			songController.AddNotFoundDates(date)
 		} else {
+			if artist != "" {
+				for _, data := range songs.([]entity.SongsRepositoryAnswer) {
+					if data.Artist == artist {
+						fmt.Println("Agregamos solo las canciones del artista a la respuesta")
+					}
+				}
+			} else {
+				fmt.Println("Agregamos todo a la respuestas")
+			}
 			fmt.Println(songs.([]entity.SongsRepositoryAnswer))
 		}
 	}
-
+	fmt.Println(songController.GetNotFoundDates())
 	c.IndentedJSON(http.StatusOK, albums)
 }
