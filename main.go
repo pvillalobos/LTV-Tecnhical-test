@@ -37,5 +37,8 @@ func main() {
 
 // getAlbums responds with the list of all albums as JSON.
 func getReleases(c *gin.Context, from time.Time, until time.Time, artist string) {
+
+	rd := Utils.rangeDate(from, until)
+
 	c.IndentedJSON(http.StatusOK, albums)
 }

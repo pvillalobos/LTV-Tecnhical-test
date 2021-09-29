@@ -28,5 +28,27 @@ func GetParameters(ctx *gin.Context) (time.Time, time.Time, string, error) {
 	if from.After(until) && errorMsg == "" {
 		errorMsg = "'from' is greater than 'until'"
 	}
-	return from, until, artist, errors.New(errorMsg)
+	if errorMsg != "" {
+		return from, until, artist, errors.New(errorMsg)
+	} else {
+		return from, until, artist, nil
+	}
+
+}
+
+//Responsible to create a Date dimension
+func rangeDate(start, end time.Time) func() time.Time {
+	y, m, d := start.Date()
+	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	y, m, d = end.Date()
+	end = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+
+	return func() time.Time {
+		if start.After(end) {
+			return time.Time{}
+		}
+		date := start
+		start = start.AddDate(0, 0, 1)
+		return date
+	}
 }
