@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"time"
 
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
 	Utils "github.com/bayronaz/LTV-Tecnhical-test/Helpers"
+	"github.com/gin-gonic/gin"
 )
 
 // albums slice to seed record album data.
@@ -18,19 +17,25 @@ var albums = []entity.Album{
 }
 
 func main() {
-	var res = Utils.PrintText()
-	fmt.Println(res)
 
 	server := gin.New()
 
 	server.Use(gin.Recovery(), gin.Logger())
 
-	server.GET("/albums", getAlbums)
+	server.GET("/releases", func(ctx *gin.Context) {
+		from, until, artist, err := Utils.GetParameters(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
+			ctx.Abort()
+			return
+		}
+		getReleases(ctx, from, until, artist)
+	})
 
-	server.Run("localhost:8080")
+	server.Run("localhost:8081")
 }
 
 // getAlbums responds with the list of all albums as JSON.
-func getAlbums(c *gin.Context) {
+func getReleases(c *gin.Context, from time.Time, until time.Time, artist string) {
 	c.IndentedJSON(http.StatusOK, albums)
 }
