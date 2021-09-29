@@ -37,7 +37,7 @@ func GetParameters(ctx *gin.Context) (time.Time, time.Time, string, error) {
 }
 
 //Responsible to create a Date dimension
-func rangeDate(start, end time.Time) func() time.Time {
+func RangeDate(start, end time.Time) func() time.Time {
 	y, m, d := start.Date()
 	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 	y, m, d = end.Date()
