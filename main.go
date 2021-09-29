@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	controller "github.com/bayronaz/LTV-Tecnhical-test/Controller"
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
 	Utils "github.com/bayronaz/LTV-Tecnhical-test/Helpers"
+	service "github.com/bayronaz/LTV-Tecnhical-test/Service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +18,11 @@ var albums = []entity.Album{
 	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
 	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
 }
+
+var (
+	songService    service.SongService       = service.New()
+	songController controller.SongController = controller.New(songService)
+)
 
 func main() {
 
@@ -47,13 +54,9 @@ func getReleases(c *gin.Context, from time.Time, until time.Time, artist string)
 			break
 		}
 
-		//Missing dates in caché that will be requested to API
-		var DatesNotFound = []time.Time{}
-
-		songs, found := Utils.C.Get(date.Format(Utils.Parse_Layout))
+		songs, found := Utils.Cache.Get(date.Format(Utils.Parse_Layout))
 		if !found {
-			DatesNotFound = append(DatesNotFound, date)
-			fmt.Println(DatesNotFound)
+			songController.AddNotFoundDates(date)
 		} else {
 			fmt.Println(songs.([]entity.SongsRepositoryAnswer))
 		}

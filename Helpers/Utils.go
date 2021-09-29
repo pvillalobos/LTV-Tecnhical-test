@@ -10,7 +10,7 @@ import (
 
 const Parse_Layout string = "2006-01-02"
 
-var C = cache.New((24*time.Hour)*30, (24*time.Hour)*30)
+var Cache = cache.New((24*time.Hour)*30, (24*time.Hour)*30)
 
 //Read query string params from gin context
 func GetParameters(ctx *gin.Context) (time.Time, time.Time, string, error) {
