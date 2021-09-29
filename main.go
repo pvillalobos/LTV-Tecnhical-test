@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -38,7 +39,25 @@ func main() {
 // getAlbums responds with the list of all albums as JSON.
 func getReleases(c *gin.Context, from time.Time, until time.Time, artist string) {
 
-	rd := Utils.rangeDate(from, until)
+	for rd := Utils.RangeDate(from, until); ; {
+		date := rd()
+
+		//if func RangeDate return no dates, breaks cycle
+		if date.IsZero() {
+			break
+		}
+
+		//Missing dates in caché that will be requested to API
+		var DatesNotFound = []time.Time{}
+
+		songs, found := Utils.C.Get(date.Format(Utils.Parse_Layout))
+		if !found {
+			DatesNotFound = append(DatesNotFound, date)
+			fmt.Println(DatesNotFound)
+		} else {
+			fmt.Println(songs.([]entity.SongsRepositoryAnswer))
+		}
+	}
 
 	c.IndentedJSON(http.StatusOK, albums)
 }
