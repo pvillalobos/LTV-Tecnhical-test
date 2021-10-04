@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"time"
 
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
@@ -61,5 +62,15 @@ func (c *controller) getGroupedNotFoundDates() map[string][]string {
 //This method will make request to songs repository and handle errors
 func (c *controller) GetDataForNotFoundDates() (bool, error) {
 
+	for _, data := range c.getGroupedNotFoundDates() {
+		if len(data) < 25 {
+			for _, date := range data {
+				fmt.Println("Fecha simple: ", date)
+			}
+		} else {
+			fmt.Println("Fecha mes: ", data)
+		}
+
+	}
 	return true, nil
 }
