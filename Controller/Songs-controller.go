@@ -62,14 +62,14 @@ func (c *controller) BuildResponse(data []entity.SongsRepositoryAnswer) {
 func (c *controller) GetReleases() []entity.OutputResponse {
 	var outputlist = make(map[string]entity.OutputResponse)
 
+	//lets group info in a map with ReleaseAt date and an array of songs
 	for _, data := range c.API_PreResponse {
 		s := entity.Songs{Artist: data.Artist, Name: data.Name}
 		outputlist[data.ReleasedAt] = entity.OutputResponse{ReleasedAt: data.ReleasedAt, Songs: append(outputlist[data.ReleasedAt].Songs, s)}
 	}
 
-	//var groupedOutput []entity.OutputResponse
+	//Place all info into service and returned it
 	for _, outp := range outputlist {
-		//groupedOutput = append(groupedOutput, outp)
 		c.addSongs(outp)
 	}
 
