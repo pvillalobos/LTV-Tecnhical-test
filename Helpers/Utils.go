@@ -9,6 +9,7 @@ import (
 )
 
 const Parse_Layout string = "2006-01-02"
+const Parse_Layout_MM string = "2006-01"
 
 var Cache = cache.New((24*time.Hour)*30, (24*time.Hour)*30)
 

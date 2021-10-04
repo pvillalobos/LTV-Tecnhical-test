@@ -44,7 +44,7 @@ func main() {
 }
 
 // getAlbums responds with the list of all albums as JSON.
-func getReleases(c *gin.Context, from time.Time, until time.Time, artist string) {
+func getReleases(ctx *gin.Context, from time.Time, until time.Time, artist string) {
 
 	for rd := Utils.RangeDate(from, until); ; {
 		date := rd()
@@ -70,6 +70,8 @@ func getReleases(c *gin.Context, from time.Time, until time.Time, artist string)
 			fmt.Println(songs.([]entity.SongsRepositoryAnswer))
 		}
 	}
-	fmt.Println(songController.GetNotFoundDates())
-	c.IndentedJSON(http.StatusOK, albums)
+	if songController.ExistNotFoundDates() {
+		fmt.Println(songController.GetDataForNotFoundDates())
+	}
+	ctx.IndentedJSON(http.StatusOK, albums)
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
+	Utils "github.com/bayronaz/LTV-Tecnhical-test/Helpers"
 	service "github.com/bayronaz/LTV-Tecnhical-test/Service"
 )
 
@@ -11,7 +12,9 @@ type SongController interface {
 	GetReleases() []entity.OutputResponse
 	AddSongs(entity.OutputResponse)
 	AddNotFoundDates(time.Time)
-	GetNotFoundDates() []time.Time
+	getGroupedNotFoundDates() map[string][]string //[]time.Time
+	ExistNotFoundDates() bool
+	GetDataForNotFoundDates() (bool, error)
 }
 
 type controller struct {
@@ -37,6 +40,26 @@ func (c *controller) AddNotFoundDates(date time.Time) {
 	c.DatesNotFound = append(c.DatesNotFound, date)
 }
 
-func (c *controller) GetNotFoundDates() []time.Time {
-	return c.DatesNotFound
+func (c *controller) ExistNotFoundDates() bool {
+	return len(c.DatesNotFound) > 0
+}
+
+//Return grouped in months the not found dates in caché
+func (c *controller) getGroupedNotFoundDates() map[string][]string {
+	datesGrouped := make(map[string][]string)
+
+	//groups dates in months to evaluate if consume API should be by day or month
+	for _, date := range c.DatesNotFound {
+		month := date.Format(Utils.Parse_Layout_MM)
+		dayInString := string(date.Format(Utils.Parse_Layout))
+
+		datesGrouped[string(month)] = append(datesGrouped[string(month)], dayInString)
+	}
+	return datesGrouped
+}
+
+//This method will make request to songs repository and handle errors
+func (c *controller) GetDataForNotFoundDates() (bool, error) {
+
+	return true, nil
 }
