@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,8 +19,8 @@ var albums = []entity.Album{
 }
 
 var (
-	songService    service.SongService       = service.New()
-	songController controller.SongController = controller.New(songService)
+	songService    service.SongService = service.New()
+	songController controller.SongController
 )
 
 func main() {
@@ -33,10 +32,12 @@ func main() {
 	server.GET("/releases", func(ctx *gin.Context) {
 		from, until, artist, err := Utils.GetParameters(ctx)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
-			ctx.Abort()
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
 			return
 		}
+		songService = service.New()
+		songController = controller.New(songService, artist)
+
 		getReleases(ctx, from, until, artist)
 	})
 
@@ -54,24 +55,21 @@ func getReleases(ctx *gin.Context, from time.Time, until time.Time, artist strin
 			break
 		}
 
+		//Lets look for what we have already store in caché
 		songs, found := Utils.Cache.Get(date.Format(Utils.Parse_Layout))
 		if !found {
 			songController.AddNotFoundDates(date)
 		} else {
-			if artist != "" {
-				for _, data := range songs.([]entity.SongsRepositoryAnswer) {
-					if data.Artist == artist {
-						fmt.Println("Agregamos solo las canciones del artista a la respuesta")
-					}
-				}
-			} else {
-				fmt.Println("Agregamos todo a la respuestas")
-			}
-			fmt.Println(songs.([]entity.SongsRepositoryAnswer))
+			songController.BuildResponse(songs.([]entity.SongsRepositoryAnswer))
 		}
 	}
+
+	//Check if there is missing dates to consume API
 	if songController.ExistNotFoundDates() {
-		fmt.Println(songController.GetDataForNotFoundDates())
+		songController.GetDataForNotFoundDates(ctx)
+		songController.BuildResponse(nil)
 	}
-	ctx.IndentedJSON(http.StatusOK, albums)
+	res := songController.GetReleases()
+	ctx.IndentedJSON(http.StatusOK, res)
+
 }

@@ -66,16 +66,16 @@ func RangeDate(start, end time.Time) func() time.Time {
 
 //Responsible for consuming API base on mode (monthly or daily) and process the response
 func ConsumeSongsRepositoryAPI(date string, mode string, ctx *gin.Context) string {
-	url := fmt.Sprintf("https://de-challenge.ltvco.com/v1/songs/%v?api_key=%v&released_at%v=", mode, api_key, date)
+	url := fmt.Sprintf("https://de-challenge.ltvco.com/v1/songs/%v?api_key=%v&released_at=%v", mode, api_key, date)
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
-		return ""
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
 	}
+
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 
@@ -87,15 +87,11 @@ func ConsumeSongsRepositoryAPI(date string, mode string, ctx *gin.Context) strin
 		if errObj != nil {
 			log.Fatalln("could not Unmarshal:", errObj)
 		}
-		ctx.JSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
-		ctx.Abort()
-		return ""
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, reqError)
 	}
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
-		ctx.Abort()
-		return ""
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
 	}
 
 	return string(body)
