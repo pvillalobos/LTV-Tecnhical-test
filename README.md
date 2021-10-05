@@ -17,3 +17,9 @@ Run API
 Github Code:
 - https://github.com/bayronaz/LTV-Tecnhical-test.git
 
+Request examples:
+- localhost:8081/releases?from=2021-01-01&until=2021-01-01
+- localhost:8081/releases?artist=Camilo&from=2021-03-01&until=2021-03-05
+- localhost:8081/releases?from=2021-03-01&until=2021-03-31
+- localhost:8081/releases?from=2021-03-01
+- localhost:8081/releases?artist=VetLove&from=2021-02-01&until=2021-02-15
