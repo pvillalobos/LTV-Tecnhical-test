@@ -15,8 +15,8 @@ Run API
     go run main.
     
 Request examples:
-    localhost:8081/releases?from=2021-01-01&until=2021-01-01
-    localhost:8081/releases?artist=Camilo&from=2021-03-01&until=2021-03-05
-    localhost:8081/releases?from=2021-03-01&until=2021-03-31
-    localhost:8081/releases?from=2021-03-01
-    localhost:8081/releases?artist=VetLove&from=2021-01-01&until=2021-01-15
+- localhost:8081/releases?from=2021-01-01&until=2021-01-01
+- localhost:8081/releases?artist=Camilo&from=2021-03-01&until=2021-03-05
+- localhost:8081/releases?from=2021-03-01&until=2021-03-31
+- localhost:8081/releases?from=2021-03-01
+- localhost:8081/releases?artist=VetLove&from=2021-01-01&until=2021-01-15
