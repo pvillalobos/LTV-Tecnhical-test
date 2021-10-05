@@ -12,7 +12,7 @@ Requirements
 
 
 Run API
-    go run main.
+- go run main.
     
 Request examples:
 - localhost:8081/releases?from=2021-01-01&until=2021-01-01
