@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	controller "github.com/bayronaz/LTV-Tecnhical-test/Controller"
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
@@ -38,34 +37,8 @@ func main() {
 		songService = service.New()
 		songController = controller.New(songService, artist)
 
-		getReleases(ctx, from, until, artist)
+		songController.ProcessRequest(ctx, from, until, artist)
 	})
 
 	server.Run("localhost:8081")
-}
-
-// getAlbums responds with the list of all albums as JSON.
-func getReleases(ctx *gin.Context, from time.Time, until time.Time, artist string) {
-
-	for rd := Utils.RangeDate(from, until); ; {
-		date := rd()
-		//if func RangeDate return no dates, breaks cycle
-		if date.IsZero() {
-			break
-		}
-		//Lets look for what we have already store in caché
-		songs, found := Utils.Cache.Get(date.Format(Utils.Parse_Layout))
-		if !found {
-			songController.AddNotFoundDates(date)
-		} else {
-			songController.BuildResponse(songs.([]entity.SongsRepositoryAnswer))
-		}
-	}
-
-	//Check if there is missing dates to consume API
-	if songController.ExistNotFoundDates() {
-		songController.GetDataForNotFoundDates(ctx)
-		songController.BuildResponse(nil)
-	}
-	ctx.IndentedJSON(http.StatusOK, songController.GetReleases())
 }

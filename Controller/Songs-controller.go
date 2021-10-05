@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -16,14 +17,15 @@ import (
 )
 
 type SongController interface {
-	GetReleases() []entity.OutputResponse
+	getReleases() []entity.OutputResponse
 	addSongs(entity.OutputResponse)
-	BuildResponse([]entity.SongsRepositoryAnswer)
-	AddNotFoundDates(time.Time)
+	buildResponse([]entity.SongsRepositoryAnswer)
+	addNotFoundDates(time.Time)
 	getGroupedNotFoundDates() map[string][]string
-	ExistNotFoundDates() bool
-	GetDataForNotFoundDates(ctx *gin.Context)
+	existNotFoundDates() bool
+	getDataForNotFoundDates(ctx *gin.Context)
 	saveDataInCache(string, string, string)
+	ProcessRequest(*gin.Context, time.Time, time.Time, string)
 }
 
 type controller struct {
@@ -40,8 +42,34 @@ func New(service service.SongService, artist string) SongController {
 	}
 }
 
+// Gets All info matching the request to respont the client
+func (c *controller) ProcessRequest(ctx *gin.Context, from time.Time, until time.Time, artist string) {
+
+	for rd := Utils.RangeDate(from, until); ; {
+		date := rd()
+		//if func RangeDate return no dates, breaks cycle
+		if date.IsZero() {
+			break
+		}
+		//Lets look for what we have already store in caché
+		songs, found := Utils.Cache.Get(date.Format(Utils.Parse_Layout))
+		if !found {
+			c.addNotFoundDates(date)
+		} else {
+			c.buildResponse(songs.([]entity.SongsRepositoryAnswer))
+		}
+	}
+
+	//Check if there is missing dates to consume API
+	if c.existNotFoundDates() {
+		c.getDataForNotFoundDates(ctx)
+		c.buildResponse(nil)
+	}
+	ctx.IndentedJSON(http.StatusOK, c.getReleases())
+}
+
 //Fill API_PreResponse with all data that should be answer, but it has to be transform into OutputResponse first
-func (c *controller) BuildResponse(data []entity.SongsRepositoryAnswer) {
+func (c *controller) buildResponse(data []entity.SongsRepositoryAnswer) {
 	if data != nil {
 		if c.Artist != "" {
 			for _, songs := range data {
@@ -71,7 +99,7 @@ func (c *controller) BuildResponse(data []entity.SongsRepositoryAnswer) {
 }
 
 //Return all data in API_PreResponse as OutputResponse array
-func (c *controller) GetReleases() []entity.OutputResponse {
+func (c *controller) getReleases() []entity.OutputResponse {
 	var outputlist = make(map[string]entity.OutputResponse)
 
 	//lets group info in a map with ReleaseAt date and an array of songs
@@ -94,12 +122,12 @@ func (c *controller) addSongs(entity entity.OutputResponse) {
 }
 
 //Fill an array with all dates that we do not have in caché
-func (c *controller) AddNotFoundDates(date time.Time) {
+func (c *controller) addNotFoundDates(date time.Time) {
 	c.DatesNotFound = append(c.DatesNotFound, date)
 }
 
 //Function to validate if there is missing data from dates we do not have in cache
-func (c *controller) ExistNotFoundDates() bool {
+func (c *controller) existNotFoundDates() bool {
 	return len(c.DatesNotFound) > 0
 }
 
@@ -119,7 +147,7 @@ func (c *controller) getGroupedNotFoundDates() map[string][]string {
 
 //This method will make request to songs repository and handle errors
 //It is using - GoRoutines-
-func (c *controller) GetDataForNotFoundDates(ctx *gin.Context) {
+func (c *controller) getDataForNotFoundDates(ctx *gin.Context) {
 	var wg sync.WaitGroup
 
 	for _, data := range c.getGroupedNotFoundDates() {
