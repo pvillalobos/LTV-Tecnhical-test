@@ -146,7 +146,7 @@ func (c *controller) getDataForNotFoundDates(ctx *gin.Context) {
 		if len(data) < 25 {
 			for _, date := range data {
 				wg.Add(1)
-				fmt.Println("Fecha por día: ", date)
+				//fmt.Println("Fecha por día: ", date)
 				go func(c *controller, ctx *gin.Context, date string, errorChannel chan string) {
 					defer wg.Done()
 					c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "daily", ctx, errorChannel), "daily", date)
@@ -156,7 +156,7 @@ func (c *controller) getDataForNotFoundDates(ctx *gin.Context) {
 			wg.Add(1)
 			date, _ := time.Parse(Utils.Parse_Layout, data[0])
 			dateString := string(date.Format(Utils.Parse_Layout_MM))
-			fmt.Println("Fecha del mes: ", dateString)
+			//fmt.Println("Fecha del mes: ", dateString)
 			go func(c *controller, ctx *gin.Context, date string, errorChannel chan string) {
 				defer wg.Done()
 				c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "monthly", ctx, errorChannel), "monthly", date)
