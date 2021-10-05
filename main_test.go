@@ -18,6 +18,8 @@ import (
 
 func Router() *gin.Engine {
 	server := gin.New()
+	gin.SetMode(gin.ReleaseMode)
+
 	server.GET("/releases", func(ctx *gin.Context) {
 		from, until, artist, err := Utils.GetParameters(ctx)
 		if err != nil {
@@ -38,7 +40,7 @@ func Test_ProcessReleasesRequest(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/releases?from=2021-01-01&until=2021-01-05", nil)
 	response := httptest.NewRecorder()
 	Router().ServeHTTP(response, request)
-	//fmt.Println(response.Body)
+	assert.NotNil(t, response.Body)
 	assert.Equal(t, 200, response.Code, "OK Response is expected")
 }
 
@@ -48,7 +50,7 @@ func Test_MissingFromParameter(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/releases?until=2021-01-05", nil)
 	response := httptest.NewRecorder()
 	Router().ServeHTTP(response, request)
-	fmt.Println(response.Body)
+	assert.NotNil(t, response.Body)
 	assert.Equal(t, 400, response.Code, "400 StatusCode response is expected")
 }
 
@@ -58,7 +60,7 @@ func Test_MissingUntilParameter(t *testing.T) {
 	request, _ := http.NewRequest("GET", "/releases?from=2021-01-01", nil)
 	response := httptest.NewRecorder()
 	Router().ServeHTTP(response, request)
-	fmt.Println(response.Body)
+	assert.NotNil(t, response.Body)
 	assert.Equal(t, 400, response.Code, "400 StatusCode response is expected")
 }
 
@@ -87,6 +89,7 @@ func Test_ProcessReleasesRequestWithArtist(t *testing.T) {
 	var jsoninput = []byte(string(body))
 	json.Unmarshal(jsoninput, &bodyRes)
 
+	assert.NotNil(t, response.Body)
 	assert.Equal(t, bodyRes, res, "OK Response is expected")
 }
 
