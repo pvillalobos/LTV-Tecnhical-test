@@ -73,7 +73,7 @@ func ConsumeSongsRepositoryAPI(date string, mode string, ctx *gin.Context) strin
 
 	res, err := client.Do(req)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	defer res.Body.Close()
@@ -87,12 +87,12 @@ func ConsumeSongsRepositoryAPI(date string, mode string, ctx *gin.Context) strin
 		if errObj != nil {
 			log.Fatalln("could not Unmarshal:", errObj)
 		}
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, reqError)
+		ctx.AbortWithError(http.StatusBadRequest, errors.New(reqError.Error))
 		return ""
 	}
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
+		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	return string(body)
