@@ -1,0 +1,16 @@
+package middlewares
+
+func HandleErrors(c *gin.Context) {
+	c.Next() // execute all the handlers
+
+	// at this point, all the handlers finished. Let's read the errors!
+	if len(c.Errors) == 0 {
+		return
+	}
+
+	err := c.Errors.Last()
+	// .. create customErrorObj using err
+
+	c.AbortWithStatusJSON(http.StatusBadRequest, customErrorObj)
+	fmt.Println(c.Writer.Header().Get("Content-Type"))
+}
