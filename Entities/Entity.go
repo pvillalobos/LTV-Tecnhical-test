@@ -7,7 +7,7 @@ type Album struct {
 	Price  float64 `json:"price"`
 }
 
-//Strut from SongsRepository API anwser
+//Answer Strut from SongsRepository API
 type SongsRepositoryAnswer struct {
 	SongID     string `json:"song_id"`
 	ReleasedAt string `json:"released_at"`
@@ -21,7 +21,7 @@ type SongsRepositoryAnswer struct {
 	} `json:"stats,omitempty"`
 }
 
-//Final answer struts
+//Final answer Struts to client
 type OutputResponse struct {
 	ReleasedAt string  `json:"released_at"`
 	Songs      []Songs `json:"songs"`

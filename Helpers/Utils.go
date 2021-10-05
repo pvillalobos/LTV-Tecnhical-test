@@ -47,7 +47,7 @@ func GetParameters(ctx *gin.Context) (time.Time, time.Time, string, error) {
 
 }
 
-//Responsible to create a Date dimension
+//Responsible to create a Date dimension array func to check dates stores on cache or to request them to song repository API
 func RangeDate(start, end time.Time) func() time.Time {
 	y, m, d := start.Date()
 	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
@@ -64,7 +64,7 @@ func RangeDate(start, end time.Time) func() time.Time {
 	}
 }
 
-//Responsible for consuming API base on mode (monthly or daily) and process the response
+//Responsible for consuming API base on a mode (monthly or daily) and return the response body
 func ConsumeSongsRepositoryAPI(date string, mode string, ctx *gin.Context) string {
 	url := fmt.Sprintf("https://de-challenge.ltvco.com/v1/songs/%v?api_key=%v&released_at=%v", mode, api_key, date)
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	. "github.com/ahmetb/go-linq/v3"
@@ -19,7 +20,7 @@ type SongController interface {
 	addSongs(entity.OutputResponse)
 	BuildResponse([]entity.SongsRepositoryAnswer)
 	AddNotFoundDates(time.Time)
-	getGroupedNotFoundDates() map[string][]string //[]time.Time
+	getGroupedNotFoundDates() map[string][]string
 	ExistNotFoundDates() bool
 	GetDataForNotFoundDates(ctx *gin.Context)
 	saveDataInCache(string, string, string)
@@ -39,6 +40,7 @@ func New(service service.SongService, artist string) SongController {
 	}
 }
 
+//Fill API_PreResponse with all data that should be answer, but it has to be transform into OutputResponse first
 func (c *controller) BuildResponse(data []entity.SongsRepositoryAnswer) {
 	if data != nil {
 		if c.Artist != "" {
@@ -68,6 +70,7 @@ func (c *controller) BuildResponse(data []entity.SongsRepositoryAnswer) {
 	}
 }
 
+//Return all data in API_PreResponse as OutputResponse array
 func (c *controller) GetReleases() []entity.OutputResponse {
 	var outputlist = make(map[string]entity.OutputResponse)
 
@@ -85,14 +88,17 @@ func (c *controller) GetReleases() []entity.OutputResponse {
 	return c.service.GetReleases()
 }
 
+//Send to the service the songs that should be answered to the request
 func (c *controller) addSongs(entity entity.OutputResponse) {
 	c.service.AddSongs(entity)
 }
 
+//Fill an array with all dates that we do not have in caché
 func (c *controller) AddNotFoundDates(date time.Time) {
 	c.DatesNotFound = append(c.DatesNotFound, date)
 }
 
+//Function to validate if there is missing data from dates we do not have in cache
 func (c *controller) ExistNotFoundDates() bool {
 	return len(c.DatesNotFound) > 0
 }
@@ -112,22 +118,36 @@ func (c *controller) getGroupedNotFoundDates() map[string][]string {
 }
 
 //This method will make request to songs repository and handle errors
+//It is using - GoRoutines-
 func (c *controller) GetDataForNotFoundDates(ctx *gin.Context) {
+	var wg sync.WaitGroup
 
 	for _, data := range c.getGroupedNotFoundDates() {
 		if len(data) < 25 {
 			for _, date := range data {
+				wg.Add(1)
 				fmt.Println("Fecha por día: ", date)
-				c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "daily", ctx), "daily", date)
+				go func(c *controller, ctx *gin.Context, date string) {
+					defer wg.Done()
+					c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "daily", ctx), "daily", date)
+				}(c, ctx, date)
 			}
 		} else {
+			wg.Add(1)
 			date, _ := time.Parse(Utils.Parse_Layout, data[0])
-			fmt.Println("Fecha del mes: ", string(date.Format(Utils.Parse_Layout_MM)))
-			c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(string(date.Format(Utils.Parse_Layout_MM)), "monthly", ctx), "monthly", "")
+			dateString := string(date.Format(Utils.Parse_Layout_MM))
+			fmt.Println("Fecha del mes: ", dateString)
+			go func(c *controller, ctx *gin.Context, date string) {
+				defer wg.Done()
+				c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "monthly", ctx), "monthly", date)
+			}(c, ctx, dateString)
 		}
 	}
+
+	wg.Wait()
 }
 
+//Fill caché with info for everyday requested
 func (c *controller) saveDataInCache(body string, mode string, date string) {
 	var jsonInput = []byte(body)
 	var dataToStore []entity.SongsRepositoryAnswer
@@ -140,17 +160,30 @@ func (c *controller) saveDataInCache(body string, mode string, date string) {
 	if mode == "daily" {
 		Utils.Cache.Set(date, dataToStore, cache.DefaultExpiration)
 	} else if mode == "monthly" {
-		for _, daysMissing := range c.DatesNotFound {
-			var songsToSave []entity.SongsRepositoryAnswer
-			date = string(daysMissing.Format(Utils.Parse_Layout))
 
+		MesActual, _ := time.Parse(Utils.Parse_Layout, date+"-01")
+		var sliceTime []time.Time
+
+		//Lets store only dates in the current month, this is why we slice time array because c.DatesNotFound contains all dates not stores in cache
+		//it could be from several months
+		From(c.DatesNotFound).Where(func(q interface{}) bool {
+			return q.(time.Time).Month() == MesActual.Month()
+		}).Select(func(q interface{}) interface{} {
+			return q.(time.Time)
+		}).ToSlice(&sliceTime)
+
+		for _, daysMissing := range sliceTime {
+			var songsToSave []entity.SongsRepositoryAnswer
+			dateToStore := string(daysMissing.Format(Utils.Parse_Layout))
+
+			//almacenamos solo del mismo mes
 			From(dataToStore).Where(func(q interface{}) bool {
-				return q.(entity.SongsRepositoryAnswer).ReleasedAt == date
+				return q.(entity.SongsRepositoryAnswer).ReleasedAt == dateToStore
 			}).Select(func(q interface{}) interface{} {
 				return q.(entity.SongsRepositoryAnswer)
 			}).ToSlice(&songsToSave)
 
-			Utils.Cache.Set(date, songsToSave, cache.DefaultExpiration)
+			Utils.Cache.Set(dateToStore, songsToSave, cache.DefaultExpiration)
 		}
 	}
 
