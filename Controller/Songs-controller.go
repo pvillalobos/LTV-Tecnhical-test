@@ -177,6 +177,10 @@ func (c *controller) getDataForNotFoundDates(ctx *gin.Context) {
 
 //Fill caché with info for everyday requested
 func (c *controller) saveDataInCache(body string, mode string, date string) {
+	if body == "" {
+		return
+	}
+
 	var jsonInput = []byte(body)
 	var dataToStore []entity.SongsRepositoryAnswer
 

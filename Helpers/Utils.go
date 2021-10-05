@@ -88,6 +88,7 @@ func ConsumeSongsRepositoryAPI(date string, mode string, ctx *gin.Context) strin
 			log.Fatalln("could not Unmarshal:", errObj)
 		}
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, reqError)
+		return ""
 	}
 
 	if err != nil {
