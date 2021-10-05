@@ -1,5 +1,9 @@
 package middlewares
 
+import (
+	"github.com/gin-gonic/gin"
+)
+
 func HandleErrors(c *gin.Context) {
 	c.Next() // execute all the handlers
 
