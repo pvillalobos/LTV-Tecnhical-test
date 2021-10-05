@@ -1,6 +1,10 @@
 package middlewares
 
 import (
+	"fmt"
+	"net/http"
+
+	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
 	"github.com/gin-gonic/gin"
 )
 
