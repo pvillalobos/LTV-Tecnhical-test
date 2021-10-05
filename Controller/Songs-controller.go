@@ -85,15 +85,6 @@ func (c *controller) buildResponse(data []entity.SongsRepositoryAnswer) {
 		for _, date := range c.DatesNotFound {
 			songs, _ := Utils.Cache.Get(date.Format(Utils.Parse_Layout))
 			c.buildResponse(songs.([]entity.SongsRepositoryAnswer))
-			/*if c.Artist != "" {
-				for _, song := range songs.([]entity.SongsRepositoryAnswer) {
-					if song.Artist == c.Artist {
-						c.API_PreResponse = append(c.API_PreResponse, song)
-					}
-				}
-			} else {
-				c.API_PreResponse = append(c.API_PreResponse, songs.([]entity.SongsRepositoryAnswer)...)
-			}*/
 		}
 	}
 }
