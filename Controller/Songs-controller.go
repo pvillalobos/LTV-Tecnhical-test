@@ -25,7 +25,7 @@ type SongController interface {
 	existNotFoundDates() bool
 	getDataForNotFoundDates(ctx *gin.Context)
 	saveDataInCache(string, string, string)
-	ProcessReleasesRequest(*gin.Context, time.Time, time.Time, string)
+	ProcessReleasesRequest(*gin.Context, time.Time, time.Time)
 }
 
 type controller struct {
@@ -43,7 +43,7 @@ func New(service service.SongService, artist string) SongController {
 }
 
 // Gets All info matching the request to respont the client
-func (c *controller) ProcessReleasesRequest(ctx *gin.Context, from time.Time, until time.Time, artist string) {
+func (c *controller) ProcessReleasesRequest(ctx *gin.Context, from time.Time, until time.Time) {
 
 	for rd := Utils.RangeDate(from, until); ; {
 		date := rd()

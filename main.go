@@ -30,7 +30,7 @@ func main() {
 		songService = service.New()
 		songController = controller.New(songService, artist)
 
-		songController.ProcessReleasesRequest(ctx, from, until, artist)
+		songController.ProcessReleasesRequest(ctx, from, until)
 	})
 
 	server.Run("localhost:8081")
