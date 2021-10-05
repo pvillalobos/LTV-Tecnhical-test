@@ -6,7 +6,6 @@ import (
 	controller "github.com/bayronaz/LTV-Tecnhical-test/Controller"
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
 	Utils "github.com/bayronaz/LTV-Tecnhical-test/Helpers"
-	middlewares "github.com/bayronaz/LTV-Tecnhical-test/Middlewares"
 	service "github.com/bayronaz/LTV-Tecnhical-test/Service"
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +19,7 @@ func main() {
 
 	server := gin.New()
 
-	server.Use(gin.Recovery(), gin.Logger(), middlewares.HandleErrors)
+	server.Use(gin.Recovery(), gin.Logger())
 
 	server.GET("/releases", func(ctx *gin.Context) {
 		from, until, artist, err := Utils.GetParameters(ctx)

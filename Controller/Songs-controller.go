@@ -149,30 +149,42 @@ func (c *controller) getGroupedNotFoundDates() map[string][]string {
 //It is using - GoRoutines-
 func (c *controller) getDataForNotFoundDates(ctx *gin.Context) {
 	var wg sync.WaitGroup
+	errorChannel := make(chan string, 1)
 
 	for _, data := range c.getGroupedNotFoundDates() {
 		if len(data) < 25 {
 			for _, date := range data {
 				wg.Add(1)
 				fmt.Println("Fecha por día: ", date)
-				go func(c *controller, ctx *gin.Context, date string) {
+				go func(c *controller, ctx *gin.Context, date string, errorChannel chan string) {
 					defer wg.Done()
-					c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "daily", ctx), "daily", date)
-				}(c, ctx, date)
+					c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "daily", ctx, errorChannel), "daily", date)
+				}(c, ctx, date, errorChannel)
 			}
 		} else {
 			wg.Add(1)
 			date, _ := time.Parse(Utils.Parse_Layout, data[0])
 			dateString := string(date.Format(Utils.Parse_Layout_MM))
 			fmt.Println("Fecha del mes: ", dateString)
-			go func(c *controller, ctx *gin.Context, date string) {
+			go func(c *controller, ctx *gin.Context, date string, errorChannel chan string) {
 				defer wg.Done()
-				c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "monthly", ctx), "monthly", date)
-			}(c, ctx, dateString)
+				c.saveDataInCache(Utils.ConsumeSongsRepositoryAPI(date, "monthly", ctx, errorChannel), "monthly", date)
+			}(c, ctx, dateString, errorChannel)
 		}
 	}
 
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(errorChannel)
+	}()
+
+	for errors := range errorChannel {
+		fmt.Println(errors)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, entity.ErrorResponse{Error: errors})
+		return
+		//break
+	}
+	return
 }
 
 //Fill caché with info for everyday requested

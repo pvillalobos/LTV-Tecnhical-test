@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 
 	entity "github.com/bayronaz/LTV-Tecnhical-test/Entities"
@@ -18,7 +17,7 @@ func HandleErrors(c *gin.Context) {
 
 	err := c.Errors.Last()
 	// .. create customErrorObj using err
-
+	//c.AbortWithStatusJSON(http.StatusBadRequest, err)
 	c.AbortWithStatusJSON(http.StatusBadRequest, entity.ErrorResponse{Error: err.Error()})
-	fmt.Println(c.Writer.Header().Get("Content-Type"))
+
 }
