@@ -10,6 +10,11 @@ Requirements
     - go get github.com/patrickmn/go-cache
     - go get github.com/ahmetb/go-linq/v3
 
+Unit Test Added
+- main_test.go
+
+Run test:
+- go test
 
 Run API
 - go run main.
