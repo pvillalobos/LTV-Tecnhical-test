@@ -49,12 +49,10 @@ func getReleases(ctx *gin.Context, from time.Time, until time.Time, artist strin
 
 	for rd := Utils.RangeDate(from, until); ; {
 		date := rd()
-
 		//if func RangeDate return no dates, breaks cycle
 		if date.IsZero() {
 			break
 		}
-
 		//Lets look for what we have already store in caché
 		songs, found := Utils.Cache.Get(date.Format(Utils.Parse_Layout))
 		if !found {
@@ -69,7 +67,5 @@ func getReleases(ctx *gin.Context, from time.Time, until time.Time, artist strin
 		songController.GetDataForNotFoundDates(ctx)
 		songController.BuildResponse(nil)
 	}
-	res := songController.GetReleases()
-	ctx.IndentedJSON(http.StatusOK, res)
-
+	ctx.IndentedJSON(http.StatusOK, songController.GetReleases())
 }
