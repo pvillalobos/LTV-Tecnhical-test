@@ -34,6 +34,16 @@ func Router() *gin.Engine {
 	return server
 }
 
+func Test_ProcessReleasesRequestNoDataFound(t *testing.T) {
+	fmt.Println("")
+	fmt.Println("-----> Test_ProcessReleasesRequestNoDataFound")
+	request, _ := http.NewRequest("GET", "/releases?from=2021-01-01&until=2021-01-01&artist=abcd", nil)
+	response := httptest.NewRecorder()
+	Router().ServeHTTP(response, request)
+	body, _ := ioutil.ReadAll(response.Body)
+	assert.NotNil(t, response.Body)
+	assert.Equal(t, string(body), "null", "OK Response is expected")
+}
 func Test_ProcessReleasesRequest(t *testing.T) {
 	fmt.Println("")
 	fmt.Println("-----> Test_ProcessReleasesRequest")
