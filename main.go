@@ -20,6 +20,7 @@ func main() {
 	server := gin.New()
 
 	server.Use(gin.Recovery(), gin.Logger())
+	gin.SetMode(gin.ReleaseMode)
 
 	server.GET("/releases", func(ctx *gin.Context) {
 		from, until, artist, err := Utils.GetParameters(ctx)
